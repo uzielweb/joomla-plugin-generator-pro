@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joomla Plugin Generator Professional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{
+  --bg:#0d0f14;--surf:#141720;--surf2:#1c2030;--surf3:#232840;
+  --b1:rgba(255,255,255,0.07);--b2:rgba(255,255,255,0.13);--b3:rgba(255,255,255,0.22);
+  --acc:#5c6fff;--acc2:#8b5cf6;--grn:#22d3a0;--amb:#f5a623;--red:#f05050;--pnk:#e879f9;
+  --txt:#e8eaf2;--mut:#7b82a0;
+  --mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:14px;height:100vh;overflow:hidden;}
+/* ── LAYOUT ── */
+#app{display:flex;flex-direction:column;height:100vh;}
+.topbar{background:var(--surf);border-bottom:1px solid var(--b2);padding:0 20px;height:52px;display:flex;align-items:center;gap:14px;flex-shrink:0;z-index:50;}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px;letter-spacing:-0.4px;white-space:nowrap;}
+.logo-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--acc2),var(--pnk));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.logo sub{color:var(--mut);font-weight:400;font-size:12px;margin-left:2px;}
+.badges{display:flex;gap:6px;flex-wrap:nowrap;}
+.badge{padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;font-family:var(--mono);white-space:nowrap;}
+.b-blue{background:rgba(92,111,255,0.15);color:var(--acc);border:1px solid rgba(92,111,255,0.3);}
+.b-grn{background:rgba(34,211,160,0.12);color:var(--grn);border:1px solid rgba(34,211,160,0.3);}
+.b-amb{background:rgba(245,166,35,0.12);color:var(--amb);border:1px solid rgba(245,166,35,0.3);}
+.top-actions{margin-left:auto;display:flex;gap:8px;}
+.btn{font-family:var(--sans);font-size:12px;font-weight:600;padding:7px 13px;border-radius:7px;border:none;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.btn-ghost{background:transparent;color:var(--mut);border:1px solid var(--b2);}
+.btn-ghost:hover{background:var(--surf2);color:var(--txt);}
+.btn-pri{background:var(--acc2);color:#fff;}
+.btn-pri:hover{background:#a78bfa;transform:translateY(-1px);}
+.btn-ok{background:var(--grn);color:#0a1a14;font-weight:700;}
+.btn-ok:hover{background:#34e8b6;}
+.btn-sm{padding:4px 9px;font-size:11px;border-radius:5px;}
+.btn-danger{background:rgba(240,80,80,0.12);color:var(--red);border:1px solid rgba(240,80,80,0.25);}
+.btn-danger:hover{background:rgba(240,80,80,0.22);}
+.main{display:flex;flex:1;overflow:hidden;}
+.sidebar{width:210px;min-width:210px;background:var(--surf);border-right:1px solid var(--b1);overflow-y:auto;padding:10px 0;flex-shrink:0;}
+.sb-sec{padding:7px 14px 3px;font-size:9px;font-weight:700;letter-spacing:1.4px;color:var(--mut);text-transform:uppercase;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;font-size:12px;font-weight:500;color:var(--mut);border-left:2px solid transparent;transition:all 0.1s;}
+.sb-item:hover{background:var(--surf2);color:var(--txt);}
+.sb-item.on{background:rgba(139,92,246,0.11);color:var(--acc2);border-left-color:var(--acc2);}
+.sb-item .ic{font-size:13px;width:16px;text-align:center;}
+.content{flex:1;overflow-y:auto;padding:20px 24px;background:var(--bg);}
+/* ── PANELS ── */
+.panel{display:none;}.panel.on{display:block;}
+.sec-title{font-size:18px;font-weight:800;letter-spacing:-0.4px;margin-bottom:3px;}
+.sec-sub{font-size:12px;color:var(--mut);margin-bottom:18px;}
+.card{background:var(--surf);border:1px solid var(--b2);border-radius:11px;padding:18px;margin-bottom:14px;}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--mut);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.card-title .dot{width:5px;height:5px;border-radius:50%;background:var(--acc2);}
+/* ── FORMS ── */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:11px;font-weight:600;color:var(--mut);letter-spacing:0.3px;}
+.field input,.field select,.field textarea{
+  font-family:var(--sans);background:var(--surf2);border:1px solid var(--b2);
+  border-radius:7px;color:var(--txt);font-size:12px;padding:8px 10px;outline:none;transition:border 0.13s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--acc2);box-shadow:0 0 0 2px rgba(139,92,246,0.14);}
+.field select option{background:var(--surf2);}
+.field textarea{resize:vertical;min-height:70px;font-family:var(--mono);font-size:11px;}
+.field small{font-size:10px;color:var(--mut);}
+.tr{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--b1);}
+.tr:last-child{border-bottom:none;}
+.tr-l{font-size:12px;font-weight:500;}
+.tr-d{font-size:10px;color:var(--mut);margin-top:1px;}
+.tog{width:36px;height:19px;background:var(--surf3);border-radius:20px;cursor:pointer;position:relative;border:1px solid var(--b2);transition:background 0.18s;flex-shrink:0;}
+.tog.on{background:var(--acc2);border-color:var(--acc2);}
+.tog::after{content:'';position:absolute;width:13px;height:13px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform 0.18s;}
+.tog.on::after{transform:translateX(17px);}
+/* ── PARAMS TABLE ── */
+.ptable{width:100%;border-collapse:collapse;font-size:11px;}
+.ptable th{text-align:left;padding:7px 9px;color:var(--mut);font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;border-bottom:1px solid var(--b2);}
+.ptable td{padding:7px 9px;border-bottom:1px solid var(--b1);vertical-align:middle;}
+.ptable tr:last-child td{border-bottom:none;}
+.ptable tr:hover td{background:rgba(255,255,255,0.018);}
+.tpill{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.3px;}
+.tp-text{background:rgba(92,111,255,0.14);color:var(--acc);}
+.tp-num{background:rgba(245,166,35,0.13);color:var(--amb);}
+.tp-sel{background:rgba(34,211,160,0.11);color:var(--grn);}
+.tp-sf{background:rgba(232,121,249,0.14);color:var(--pnk);border:1px solid rgba(232,121,249,0.3);}
+.tp-misc{background:rgba(255,255,255,0.07);color:var(--mut);}
+.tp-med{background:rgba(139,92,246,0.14);color:var(--acc2);}
+.ibt{background:none;border:none;cursor:pointer;font-size:11px;padding:3px 6px;border-radius:4px;font-family:var(--mono);}
+.ibt-edit{color:var(--acc2);}.ibt-edit:hover{background:rgba(139,92,246,0.12);}
+.ibt-del{color:var(--mut);}.ibt-del:hover{color:var(--red);background:rgba(240,80,80,0.1);}
+.ibt-up,.ibt-dn{color:var(--mut);}.ibt-up:hover,.ibt-dn:hover{color:var(--txt);background:var(--surf3);}
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
+.modal{background:var(--surf);border:1px solid var(--b3);border-radius:14px;width:100%;max-width:760px;padding:22px;margin:auto;}
+.mhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.mtitle{font-size:15px;font-weight:800;}
+.mclose{background:none;border:none;color:var(--mut);cursor:pointer;font-size:22px;line-height:1;padding:2px 8px;border-radius:5px;}
+.mclose:hover{background:var(--surf2);color:var(--txt);}
+/* ── ATTR GRID ── */
+.attr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+.attr-box{background:var(--surf2);border:1px solid var(--b2);border-radius:8px;padding:10px;}
+.attr-name{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--acc2);margin-bottom:5px;}
+.attr-box input,.attr-box select,.attr-box textarea{width:100%;font-family:var(--sans);background:var(--surf3);border:1px solid var(--b2);border-radius:5px;color:var(--txt);font-size:11px;padding:6px 8px;outline:none;}
+.attr-box small{display:block;font-size:9px;color:var(--mut);margin-top:3px;}
+/* ── SUBFORM ── */
+.sf-wrap{background:var(--surf2);border:1px solid rgba(232,121,249,0.25);border-radius:9px;padding:13px;margin-top:12px;}
+.sf-header{font-size:10px;font-weight:700;color:var(--pnk);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.sf-table{width:100%;border-collapse:collapse;font-size:11px;}
+.sf-table th{text-align:left;padding:5px 8px;color:var(--mut);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--b2);}
+.sf-table td{padding:5px 8px;border-bottom:1px solid var(--b1);vertical-align:middle;}
+.sf-table tr:last-child td{border-bottom:none;}
+.sf-add-row{display:grid;grid-template-columns:1fr 130px 1fr 100px auto;gap:7px;margin-top:8px;align-items:end;}
+/* ── OPTIONS ── */
+.opt-wrap{background:var(--surf2);border:1px solid rgba(34,211,160,0.2);border-radius:9px;padding:12px;margin-top:12px;}
+.opt-header{font-size:10px;font-weight:700;color:var(--grn);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.opt-row{display:grid;grid-template-columns:1fr 1fr auto auto;gap:7px;align-items:center;padding:4px 0;border-bottom:1px solid var(--b1);}
+.opt-add{display:grid;grid-template-columns:1fr 1fr auto;gap:7px;margin-top:8px;}
+/* ── CODE ── */
+.code-block{background:var(--surf2);border:1px solid var(--b2);border-radius:9px;overflow:hidden;margin-bottom:14px;}
+.code-hdr{padding:9px 13px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--b1);}
+.code-fn{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--mut);}
+.code-fn em{color:var(--acc2);font-style:normal;}
+.code-body{padding:13px;overflow-x:auto;}
+.code-body pre{font-family:var(--mono);font-size:10px;line-height:1.75;color:#c0c8f0;white-space:pre;word-break:normal;}
+.tab-bar{display:flex;gap:3px;background:var(--surf2);border-radius:9px;padding:3px;flex-wrap:wrap;margin-bottom:14px;}
+.tab-btn{padding:6px 11px;border-radius:6px;border:none;background:none;color:var(--mut);font-family:var(--sans);font-size:10px;font-weight:600;cursor:pointer;transition:all 0.13s;white-space:nowrap;}
+.tab-btn.on{background:var(--surf);color:var(--txt);}
+/* ── STATUS BAR ── */
+.sbar{position:fixed;bottom:14px;right:20px;background:var(--surf);border:1px solid var(--b2);border-radius:9px;padding:9px 14px;font-size:11px;font-family:var(--mono);display:flex;align-items:center;gap:7px;opacity:0;transform:translateY(6px);transition:all 0.28s;z-index:999;box-shadow:0 8px 28px rgba(0,0,0,0.45);}
+.sbar.show{opacity:1;transform:translateY(0);}
+.sdot{width:7px;height:7px;border-radius:50%;}
+.sdot-g{background:var(--grn);box-shadow:0 0 5px var(--grn);}
+.sdot-a{background:var(--amb);}
+.sdot-r{background:var(--red);}
+/* ── FILETREE ── */
+.ftree{list-style:none;font-family:var(--mono);font-size:11px;line-height:2.1;}
+.ftree li{display:flex;align-items:center;gap:6px;}
+.ftree li span{padding-left:calc(var(--d,0)*18px);}
+.ftree .fdir{color:var(--amb);font-weight:600;}
+.ftree .fphp,.ftree .fxml{color:var(--acc2);}
+/* scrollbar */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--surf3);border-radius:3px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon">🔌</div>
+      Joomla Plugin Generator <sub style="color:var(--pnk);font-weight:700">PRO</sub>
+    </div>
+    <div class="badges">
+      <span class="badge b-blue" id="bdg-name">plg_system_myplugin</span>
+      <span class="badge b-grn" id="bdg-ver">v1.0.0</span>
+    </div>
+    <div class="top-actions">
+      <div style="display:flex;background:rgba(255,255,255,0.04);border:1px solid var(--b2);border-radius:7px;overflow:hidden;flex-shrink:0;">
+        <button onclick="setLang('pt')" id="lang-pt" style="padding:4px 10px;border:none;background:var(--acc2);color:#fff;font-size:10px;font-weight:700;cursor:pointer;font-family:var(--sans);">PT</button>
+        <button onclick="setLang('en')" id="lang-en" style="padding:4px 10px;border:none;background:transparent;color:var(--mut);font-size:10px;font-weight:700;cursor:pointer;font-family:var(--sans);">EN</button>
+        <button onclick="setLang('es')" id="lang-es" style="padding:4px 10px;border:none;background:transparent;color:var(--mut);font-size:10px;font-weight:700;cursor:pointer;font-family:var(--sans);">ES</button>
+      </div>
+      <button class="btn btn-ghost" onclick="showPanel('preview')" data-i18n="btn-preview">👁 Preview</button>
+      <button class="btn btn-ok" id="dl-btn" onclick="generateZip()" data-i18n="btn-download">⬇ Baixar ZIP</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div class="sb-sec" data-i18n="sb-config">Configuração</div>
+      <div class="sb-item on" onclick="showPanel('basic')" id="nav-basic"><span class="ic">📋</span><span data-i18n="sb-info">Informações</span></div>
+      <div class="sb-item" onclick="showPanel('group')" id="nav-group"><span class="ic">🧩</span><span data-i18n="sb-group">Grupo & Eventos</span></div>
+      <div class="sb-item" onclick="showPanel('params')" id="nav-params"><span class="ic">⚙️</span><span data-i18n="sb-params">Parâmetros</span></div>
+      <div class="sb-sec" data-i18n="sb-output">Saída</div>
+      <div class="sb-item" onclick="showPanel('preview')" id="nav-preview"><span class="ic">👁</span><span data-i18n="sb-preview">Preview Código</span></div>
+      <div class="sb-item" onclick="showPanel('tree')" id="nav-tree"><span class="ic">📁</span><span data-i18n="sb-tree">Arquivos</span></div>
+    </div>
+
+    <div class="content">
+      <div class="panel on" id="panel-basic">
+        <div class="sec-title" data-i18n="panel-basic-title">📋 Informações Básicas</div>
+        <div class="sec-sub" data-i18n="panel-basic-sub">Metadados do plugin Joomla 5/6</div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span><span data-i18n="card-id-title">Identificação</span></div>
+          <div class="fg">
+            <div class="field"><label data-i18n="lbl-plg-name">Nome do Plugin</label><input id="f-name" value="myplugin" oninput="sync()"></div>
+            <div class="field"><label data-i18n="lbl-plg-display">Nome de Exibição</label><input id="f-title" value="My Plugin"></div>
+            <div class="field"><label data-i18n="lbl-vendor">Vendor</label><input id="f-vendor" value="MyCompany" oninput="sync()"></div>
+            <div class="field"><label data-i18n="lbl-version">Versão</label><input id="f-ver" value="1.0.0" oninput="sync()"></div>
+            <div class="field" style="grid-column: 1/-1;"><label data-i18n="lbl-desc">Descrição</label><textarea id="f-desc">Um plugin Joomla moderno gerado pelo Plugin Generator Pro</textarea></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-group">
+        <div class="sec-title" data-i18n="panel-group-title">🧩 Grupo & Eventos</div>
+        <div class="sec-sub" data-i18n="panel-group-sub">Selecione o tipo de plugin e os eventos que ele deve escutar</div>
+        <div class="card">
+          <div class="field"><label data-i18n="lbl-plg-group">Grupo do Plugin</label>
+            <select id="f-group" onchange="updateEvents()">
+              <option value="system">System (Sistema)</option>
+              <option value="content">Content (Conteúdo)</option>
+              <option value="user">User (Usuário)</option>
+              <option value="webservices">WebServices (API)</option>
+              <option value="authentication">Authentication</option>
+              <option value="finder">Finder (Busca)</option>
+              <option value="editors">Editors</option>
+              <option value="extension">Extension</option>
+              <option value="installer">Installer</option>
+            </select>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span><span data-i18n="card-events-title">Eventos Disponíveis</span></div>
+          <div id="events-list"></div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-params">
+        <div class="sec-title" data-i18n="panel-params-title">⚙️ Parâmetros do Plugin</div>
+        <div class="sec-sub" data-i18n="panel-params-sub">Configurações que aparecerão no painel administrativo</div>
+        <div class="card">
+          <div class="card-title" style="justify-content:space-between">
+            <span style="display:flex;align-items:center;gap:7px"><span class="dot"></span><span data-i18n="card-params-title">Campos Cadastrados</span></span>
+            <button class="btn btn-danger btn-sm" onclick="clearParams()" data-i18n="btn-clear">✕ Limpar</button>
+          </div>
+          <table class="ptable">
+            <thead><tr><th data-i18n="th-type">Tipo</th><th data-i18n="th-name">Nome</th><th data-i18n="th-label">Label</th><th data-i18n="th-default">Padrão</th><th data-i18n="th-req">Req</th><th data-i18n="th-desc">Descrição</th><th data-i18n="th-extra">Extra</th><th style="text-align:right" data-i18n="th-actions">Ações</th></tr></thead>
+            <tbody id="ptbody"></tbody>
+          </table>
+          <hr style="border:none;border-top:1px solid var(--b1);margin:13px 0;">
+          <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end">
+            <div class="field" style="flex:1;min-width:90px"><label data-i18n="th-label">Label</label><input id="p-label" placeholder="Rótulo" oninput="autoFillName(this.value)"></div>
+            <div class="field" style="flex:1;min-width:90px"><label><span data-i18n="th-name">Nome</span></label><input id="p-name" placeholder="param_name" oninput="pNameEdited=true"></div>
+            <div class="field" style="min-width:160px"><label data-i18n="th-type">Tipo</label><select id="p-type" onchange="onTypeChange()"></select></div>
+            <div class="field" style="width:85px"><label data-i18n="th-default">Padrão</label><input id="p-def" placeholder=""></div>
+            <div class="field" style="width:80px"><label data-i18n="th-req">Required</label><select id="p-req"><option value="">—</option><option value="true">true</option><option value="false">false</option></select></div>
+            <button class="btn btn-pri btn-sm" onclick="quickAdd()" style="align-self:flex-end" data-i18n="btn-add">+ Adicionar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-preview">
+        <div class="sec-title" data-i18n="panel-preview-title">👁 Preview do Código</div>
+        <div class="tab-bar" id="prev-tabs"></div>
+        <div id="prev-content"></div>
+      </div>
+
+      <div class="panel" id="panel-tree">
+        <div class="sec-title" data-i18n="panel-tree-title">📁 Árvore de Arquivos</div>
+        <div class="card" id="ftree-wrap"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="modal" style="display:none" onclick="closeModalOut(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="mhdr">
+      <div class="mtitle" id="m-title" data-i18n="modal-title">Editar Parâmetro</div>
+      <button class="mclose" onclick="closeModal()">×</button>
+    </div>
+    <div id="m-body"></div>
+    <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:18px">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()" data-i18n="btn-cancel">Cancelar</button>
+      <button class="btn btn-pri btn-sm" onclick="saveModal()" data-i18n="btn-save">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS -->
+<div class="sbar" id="sbar"><div class="sdot sdot-g" id="sdot"></div><span id="smsg">Pronto</span></div>
+
+<script>
+const state = {
+  name: 'myplugin',
+  title: 'My Plugin',
+  vendor: 'MyCompany',
+  version: '1.0.0',
+  group: 'system',
+  events: [],
+  params: [],
+  files: {},
+  lang: 'pt'
+};
+
+let editIdx = -1;
+let editTmp = null;
+let pNameEdited = false;
+
+const i18n = {
+  pt: {
+    'btn-preview': '👁 Preview',
+    'btn-download': '⬇ Baixar ZIP',
+    'sb-config': 'Configuração',
+    'sb-info': 'Informações',
+    'sb-group': 'Grupo & Eventos',
+    'sb-params': 'Parâmetros',
+    'sb-output': 'Saída',
+    'sb-preview': 'Preview Código',
+    'sb-tree': 'Árvore de Arquivos',
+    'panel-basic-title': '📋 Informações Básicas',
+    'panel-basic-sub': 'Metadados do plugin Joomla 5/6',
+    'card-id-title': 'Identificação',
+    'lbl-plg-name': 'Nome do Plugin',
+    'lbl-plg-display': 'Nome de Exibição',
+    'lbl-vendor': 'Vendor',
+    'lbl-version': 'Versão',
+    'lbl-desc': 'Descrição',
+    'panel-group-title': '🧩 Grupo & Eventos',
+    'panel-group-sub': 'Selecione o tipo de plugin e os eventos que ele deve escutar',
+    'lbl-plg-group': 'Grupo do Plugin',
+    'card-events-title': 'Eventos Disponíveis',
+    'panel-params-title': '⚙️ Parâmetros do Plugin',
+    'panel-params-sub': 'Configurações que aparecerão no painel administrativo',
+    'card-params-title': 'Campos Cadastrados',
+    'btn-clear': '✕ Limpar',
+    'th-type': 'Tipo',
+    'th-name': 'Nome',
+    'th-label': 'Label',
+    'th-default': 'Padrão',
+    'th-req': 'Req',
+    'th-desc': 'Descrição',
+    'th-extra': 'Extra',
+    'th-actions': 'Ações',
+    'btn-add': '+ Adicionar',
+    'modal-title': 'Editar Parâmetro',
+    'btn-cancel': 'Cancelar',
+    'btn-save': '💾 Salvar',
+    'th-subfields': 'subcampo(s)',
+    'th-options': 'opção(ões)',
+    'th-extra-attr': 'attr extra',
+    'th-yes': 'sim',
+    'lbl-name': 'Nome',
+    'lbl-type': 'Tipo',
+    'lbl-lbl-trans': 'Label (traduzível)',
+    'lbl-desc-trans': 'Descrição (traduzível)',
+    'lbl-def-val': 'Valor Padrão (default)',
+    'lbl-spec-attr': 'Atributos Específicos',
+    'lbl-univ-attr': 'Atributos Universais',
+    'lbl-opts': 'Opções',
+    'lbl-subfields': 'Subcampos',
+    'btn-up': 'Subir',
+    'btn-down': 'Descer',
+    'btn-dup': 'Duplicar',
+    'btn-edit': 'Editar',
+    'btn-remove': 'Remover',
+    'lbl-required': 'obrigatório',
+    'panel-preview-title': '👁 Preview do Código',
+    'panel-tree-title': '📁 Árvore de Arquivos'
+  },
+  en: {
+    'btn-preview': '👁 Preview',
+    'btn-download': '⬇ Download ZIP',
+    'sb-config': 'Configuration',
+    'sb-info': 'Information',
+    'sb-group': 'Group & Events',
+    'sb-params': 'Parameters',
+    'sb-output': 'Output',
+    'sb-preview': 'Code Preview',
+    'sb-tree': 'File Tree',
+    'panel-basic-title': '📋 Basic Information',
+    'panel-basic-sub': 'Joomla 5/6 plugin metadata',
+    'card-id-title': 'Identification',
+    'lbl-plg-name': 'Plugin Name',
+    'lbl-plg-display': 'Display Name',
+    'lbl-vendor': 'Vendor',
+    'lbl-version': 'Version',
+    'lbl-desc': 'Description',
+    'panel-group-title': '🧩 Group & Events',
+    'panel-group-sub': 'Select the plugin type and the events it should listen to',
+    'lbl-plg-group': 'Plugin Group',
+    'card-events-title': 'Available Events',
+    'panel-params-title': '⚙️ Plugin Parameters',
+    'panel-params-sub': 'Settings that will appear in the admin panel',
+    'card-params-title': 'Registered Fields',
+    'btn-clear': '✕ Clear',
+    'th-type': 'Type',
+    'th-name': 'Name',
+    'th-label': 'Label',
+    'th-default': 'Default',
+    'th-req': 'Req',
+    'th-desc': 'Description',
+    'th-extra': 'Extra',
+    'th-actions': 'Actions',
+    'btn-add': '+ Add',
+    'modal-title': 'Edit Parameter',
+    'btn-cancel': 'Cancel',
+    'btn-save': '💾 Save',
+    'th-subfields': 'subfield(s)',
+    'th-options': 'option(s)',
+    'th-extra-attr': 'extra attr',
+    'th-yes': 'yes',
+    'lbl-name': 'Name',
+    'lbl-type': 'Type',
+    'lbl-lbl-trans': 'Label (translatable)',
+    'lbl-desc-trans': 'Description (translatable)',
+    'lbl-def-val': 'Default Value',
+    'lbl-spec-attr': 'Specific Attributes',
+    'lbl-univ-attr': 'Universal Attributes',
+    'lbl-opts': 'Options',
+    'lbl-subfields': 'Subfields',
+    'btn-up': 'Up',
+    'btn-down': 'Down',
+    'btn-dup': 'Duplicate',
+    'btn-edit': 'Edit',
+    'btn-remove': 'Remove',
+    'lbl-required': 'required',
+    'panel-preview-title': '👁 Code Preview',
+    'panel-tree-title': '📁 File Tree'
+  },
+  es: {
+    'btn-preview': '👁 Vista Previa',
+    'btn-download': '⬇ Descargar ZIP',
+    'sb-config': 'Configuración',
+    'sb-info': 'Información',
+    'sb-group': 'Grupo y Eventos',
+    'sb-params': 'Parámetros',
+    'sb-output': 'Salida',
+    'sb-preview': 'Vista Previa',
+    'sb-tree': 'Árbol de Archivos',
+    'panel-basic-title': '📋 Información Básica',
+    'panel-basic-sub': 'Metadatos del plugin Joomla 5/6',
+    'card-id-title': 'Identificación',
+    'lbl-plg-name': 'Nombre del Plugin',
+    'lbl-plg-display': 'Nombre de Visualización',
+    'lbl-vendor': 'Vendor',
+    'lbl-version': 'Versión',
+    'lbl-desc': 'Descripción',
+    'panel-group-title': '🧩 Grupo y Eventos',
+    'panel-group-sub': 'Seleccione el tipo de plugin y los eventos que debe escuchar',
+    'lbl-plg-group': 'Grupo del Plugin',
+    'card-events-title': 'Eventos Disponibles',
+    'panel-params-title': '⚙️ Parámetros del Plugin',
+    'panel-params-sub': 'Configuraciones que aparecerán en el panel administrativo',
+    'card-params-title': 'Campos Registrados',
+    'btn-clear': '✕ Limpiar',
+    'th-type': 'Tipo',
+    'th-name': 'Nombre',
+    'th-label': 'Etiqueta',
+    'th-default': 'Predeterminado',
+    'th-req': 'Req',
+    'th-desc': 'Descripción',
+    'th-extra': 'Extra',
+    'th-actions': 'Acciones',
+    'btn-add': '+ Añadir',
+    'modal-title': 'Editar Parámetro',
+    'btn-cancel': 'Cancelar',
+    'btn-save': '💾 Guardar',
+    'th-subfields': 'subcampo(s)',
+    'th-options': 'opción(es)',
+    'th-extra-attr': 'attr extra',
+    'th-yes': 'sí',
+    'lbl-name': 'Nombre',
+    'lbl-type': 'Tipo',
+    'lbl-lbl-trans': 'Etiqueta (traducible)',
+    'lbl-desc-trans': 'Descripción (traducible)',
+    'lbl-def-val': 'Valor Predeterminado',
+    'lbl-spec-attr': 'Atributos Específicos',
+    'lbl-univ-attr': 'Atributos Universais',
+    'lbl-opts': 'Opciones',
+    'lbl-subfields': 'Subcampos',
+    'btn-up': 'Subir',
+    'btn-down': 'Bajar',
+    'btn-dup': 'Duplicar',
+    'btn-edit': 'Editar',
+    'btn-remove': 'Eliminar',
+    'lbl-required': 'obligatorio',
+    'panel-preview-title': '👁 Vista Previa del Código',
+    'panel-tree-title': '📁 Árbol de Archivos'
+  }
+};
+
+const FTYPES = {
+  text:{cat:'text',label:'text',color:'tp-text',attrs:{description:{t:'text',d:''},filter:{t:'select',opts:['','raw','safehtml','int','uint','float','word','alnum','cmd','base64','string','html','array','path','username'],d:''},hint:{t:'text',d:''},size:{t:'num',d:''},maxlength:{t:'num',d:''},required:{t:'bool',d:''},readonly:{t:'bool',d:''},disabled:{t:'bool',d:''},class:{t:'text',d:''},showon:{t:'text',d:''},validate:{t:'text',d:''}}},
+  textarea:{cat:'text',label:'textarea',color:'tp-text',attrs:{description:{t:'text',d:''},filter:{t:'select',opts:['','raw','safehtml','html','string'],d:''},hint:{t:'text',d:''},rows:{t:'num',d:'10'},cols:{t:'num',d:''},class:{t:'text',d:''},required:{t:'bool',d:''},readonly:{t:'bool',d:''},disabled:{t:'bool',d:''},maxlength:{t:'num',d:''},validate:{t:'text',d:''},showon:{t:'text',d:''},onchange:{t:'text',d:''}}},
+  editor:{cat:'text',label:'editor',color:'tp-text',attrs:{filter:{t:'select',opts:['safehtml','raw'],d:'safehtml'},editor:{t:'select',opts:['','none','tinymce','codemirror'],d:''},buttons:{t:'text',d:'true'},hide:{t:'text',d:''},width:{t:'text',d:''},height:{t:'text',d:''},required:{t:'bool',d:''},readonly:{t:'bool',d:''},showon:{t:'text',d:''}}},
+  password:{cat:'text',label:'password',color:'tp-text',attrs:{size:{t:'num',d:''},maxlength:{t:'num',d:''},class:{t:'text',d:''},required:{t:'bool',d:''},readonly:{t:'bool',d:''},disabled:{t:'bool',d:''},hint:{t:'text',d:''},validate:{t:'text',d:''},showon:{t:'text',d:''},strengthmeter:{t:'bool',d:'true'},threshold:{t:'num',d:'66'}}},
+  integer:{cat:'num',label:'integer',color:'tp-num',attrs:{first:{t:'num',d:'0'},last:{t:'num',d:'10'},step:{t:'num',d:'1'},required:{t:'bool',d:''},class:{t:'text',d:''},showon:{t:'text',d:''},validate:{t:'text',d:''}}},
+  number:{cat:'num',label:'number',color:'tp-num',attrs:{min:{t:'num',d:'0'},max:{t:'num',d:'100'},step:{t:'num',d:'1'},required:{t:'bool',d:''},class:{t:'text',d:''},hint:{t:'text',d:''},validate:{t:'text',d:''},showon:{t:'text',d:''}}},
+  range:{cat:'num',label:'range',color:'tp-num',attrs:{min:{t:'num',d:'0'},max:{t:'num',d:'100'},step:{t:'num',d:'1'},class:{t:'text',d:''},showon:{t:'text',d:''}}},
+  meter:{cat:'num',label:'meter',color:'tp-num',attrs:{min:{t:'num',d:'0'},max:{t:'num',d:'100'},low:{t:'num',d:''},high:{t:'num',d:''},optimum:{t:'num',d:''},class:{t:'text',d:''},showon:{t:'text',d:''}}},
+  list:{cat:'sel',label:'list',color:'tp-sel',hasOpts:true,attrs:{multiple:{t:'bool',d:''},size:{t:'num',d:''},required:{t:'bool',d:''},class:{t:'text',d:''},filter:{t:'select',opts:['','int','word','alnum','cmd','raw'],d:''},useglobal:{t:'bool',d:''},showon:{t:'text',d:''},validate:{t:'text',d:''}}},
+  radio:{cat:'sel',label:'radio',color:'tp-sel',hasOpts:true,attrs:{required:{t:'bool',d:''},class:{t:'text',d:''},layout:{t:'select',opts:['','inline'],d:''},showon:{t:'text',d:''},validate:{t:'text',d:''}}},
+  checkboxes:{cat:'sel',label:'checkboxes',color:'tp-sel',hasOpts:true,attrs:{required:{t:'bool',d:''},class:{t:'text',d:''},showon:{t:'text',d:''},validate:{t:'text',d:''}}},
+  checkbox:{cat:'sel',label:'checkbox',color:'tp-sel',attrs:{selected:{t:'bool',d:''},required:{t:'bool',d:''},class:{t:'text',d:''},showon:{t:'text',d:''},validate:{t:'text',d:''}}},
+  groupedlist:{cat:'sel',label:'groupedlist',color:'tp-sel',hasOpts:true,attrs:{multiple:{t:'bool',d:''},required:{t:'bool',d:''},class:{t:'text',d:''},useglobal:{t:'bool',d:''},showon:{t:'text',d:''}}},
+  combo:{cat:'sel',label:'combo',color:'tp-sel',hasOpts:true,attrs:{required:{t:'bool',d:''},class:{t:'text',d:''},showon:{t:'text',d:''}}},
+  color:{cat:'media',label:'color',color:'tp-med',attrs:{format:{t:'select',opts:['hex','rgb','rgba','hsl','hsla',''],d:'hex'},keywords:{t:'text',d:''},class:{t:'text',d:''},showon:{t:'text',d:''}}},
+  media:{cat:'media',label:'media',color:'tp-med',attrs:{types:{t:'text',d:''},directory:{t:'text',d:''},preview:{t:'bool',d:'true'},class:{t:'text',d:''},showon:{t:'text',d:''}}},
+  accessiblemedia:{cat:'media',label:'accessiblemedia',color:'tp-med',attrs:{types:{t:'text',d:''},directory:{t:'text',d:''},class:{t:'text',d:''},showon:{t:'text',d:''},preview:{t:'bool',d:'true'},alt_field:{t:'text',d:''}}},
+  calendar:{cat:'date',label:'calendar',color:'tp-text',attrs:{format:{t:'text',d:'%Y-%m-%d'},filter:{t:'select',opts:['','user_utc','server_utc'],d:''},todaybutton:{t:'bool',d:'true'},weeknumbers:{t:'bool',d:'false'},showtime:{t:'bool',d:'false'},timeformat:{t:'select',opts:['12','24'],d:'24'},required:{t:'bool',d:''},class:{t:'text',d:''},showon:{t:'text',d:''}}},
+  // ── JOOMLA SPECIFIC ───────────────────────────────────
+  accesslevel:{cat:'joomla',label:'accesslevel',color:'tp-misc',attrs:{multiple:{t:'bool',d:''},class:{t:'text',d:''},showon:{t:'text',d:''}}},
+  category:{cat:'joomla',label:'category',color:'tp-misc',attrs:{extension:{t:'text',d:'com_content'},published:{t:'num',d:'1'},show_root:{t:'bool',d:''},multiple:{t:'bool',d:''},class:{t:'text',d:''},showon:{t:'text',d:''}}},
+  language:{cat:'joomla',label:'language',color:'tp-misc',attrs:{client:{t:'select',opts:['site','administrator'],d:'site'},class:{t:'text',d:''},showon:{t:'text',d:''}}},
+  tag:{cat:'joomla',label:'tag',color:'tp-misc',attrs:{mode:{t:'select',opts:['nested','ajax'],d:'nested'},published:{t:'num',d:'1'},multiple:{t:'bool',d:'true'},class:{t:'text',d:''},showon:{t:'text',d:''}}},
+  user:{cat:'joomla',label:'user',color:'tp-misc',attrs:{class:{t:'text',d:''},multiple:{t:'bool',d:''},showon:{t:'text',d:''}}},
+  usergrouplist:{cat:'joomla',label:'usergrouplist',color:'tp-misc',attrs:{multiple:{t:'bool',d:''},class:{t:'text',d:''},showon:{t:'text',d:''}}},
+  menuitem:{cat:'joomla',label:'menuitem',color:'tp-misc',attrs:{class:{t:'text',d:''},showon:{t:'text',d:''}}},
+  plugins:{cat:'joomla',label:'plugins',color:'tp-misc',attrs:{folder:{t:'text',d:'system'},class:{t:'text',d:''},showon:{t:'text',d:''}}},
+  // ── STRUCTURAL ────────────────────────────────────────
+  spacer:{cat:'struct',label:'spacer',color:'tp-misc',attrs:{class:{t:'text',d:''},hr:{t:'bool',d:'true'},description:{t:'text',d:''}}},
+  note:{cat:'struct',label:'note',color:'tp-misc',attrs:{heading:{t:'text',d:''},class:{t:'text',d:''},description:{t:'text',d:''}}},
+  hidden:{cat:'struct',label:'hidden',color:'tp-misc',attrs:{required:{t:'bool',d:''}}},
+  // ── SUBFORM ───────────────────────────────────────────
+  subform:{cat:'subform',label:'subform',color:'tp-sf',isSubform:true,attrs:{multiple:{t:'bool',d:'false'},layout:{t:'select',opts:['joomla.form.field.subform.repeatable-table','joomla.form.field.subform.repeatable-grid','joomla.form.field.subform.repeatable','joomla.form.field.subform.default'],d:'joomla.form.field.subform.repeatable-table'},min:{t:'num',d:'0'},max:{t:'num',d:'1000'},icon:{t:'text',d:'list'},groupByFieldset:{t:'bool',d:'false'},buttons:{t:'text',d:''},class:{t:'text',d:''},showon:{t:'text',d:''}}},
+  sql:{cat:'sql',label:'sql',color:'tp-sel',attrs:{query:{t:'textarea',d:''},key_field:{t:'text',d:'value'},value_field:{t:'text',d:'text'},text_field:{t:'text',d:'text'},translate:{t:'bool',d:'false'},multiple:{t:'bool',d:''},header:{t:'text',d:''},class:{t:'text',d:''},showon:{t:'text',d:''}}}
+};
+
+const typeGroups = [
+  {label:'📝 Texto',keys:['text','textarea','editor','password']},
+  {label:'🔢 Número',keys:['integer','number','range','meter']},
+  {label:'☑ Seleção',keys:['list','radio','checkboxes','checkbox','groupedlist','combo']},
+  {label:'🖼 Mídia',keys:['color','media','accessiblemedia']},
+  {label:'📅 Data',keys:['calendar']},
+  {label:'🔧 Joomla',keys:['accesslevel','category','language','tag','user','usergrouplist','menuitem','plugins']},
+  {label:'📋 Estrutural',keys:['hidden','spacer','note']},
+  {label:'🗄 SQL',keys:['sql']},
+  {label:'📦 Subform',keys:['subform']}
+];
+
+const eventsByGroup = {
+  system: ['onAfterInitialise', 'onAfterRoute', 'onAfterDispatch', 'onAfterRender', 'onBeforeRender', 'onAfterExecute'],
+  content: ['onContentPrepare', 'onContentAfterTitle', 'onContentBeforeDisplay', 'onContentAfterDisplay', 'onContentBeforeSave', 'onContentAfterSave', 'onContentBeforeDelete', 'onContentAfterDelete', 'onContentChangeState'],
+  user: ['onUserLogin', 'onUserLogout', 'onUserBeforeSave', 'onUserAfterSave', 'onUserBeforeDelete', 'onUserAfterDelete', 'onUserLoginFailure'],
+  webservices: ['onBeforeApiRoute', 'onAfterApiRoute', 'onBeforeApiDispatch', 'onAfterApiDispatch'],
+  authentication: ['onUserAuthenticate'],
+  finder: ['onFinderBeforeSave', 'onFinderAfterSave', 'onFinderChangeState', 'onFinderCategoryChangeState'],
+  installer: ['onInstallerBeforePackageDownload', 'onInstallerBeforeInstallation', 'onInstallerAfterInstallation']
+};
+
+function t(k, vars={}){
+  const dict = i18n[state.lang] || i18n['pt'];
+  let txt = dict[k] || k;
+  Object.keys(vars).forEach(v => { txt = txt.replace('{'+v+'}', vars[v]); });
+  return txt;
+}
+
+function status(msg,type='g'){
+  const sb=document.getElementById('sbar'),dot=document.getElementById('sdot'),sm=document.getElementById('smsg');
+  sm.textContent=msg; dot.className='sdot sdot-'+type;
+  sb.classList.add('show');
+  setTimeout(()=>sb.classList.remove('show'),3200);
+}
+
+function setLang(l) {
+  state.lang = l;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (i18n[l][key]) el.textContent = i18n[l][key];
+  });
+  document.querySelectorAll('.top-actions button[id^="lang-"]').forEach(btn => {
+    btn.style.background = 'transparent'; btn.style.color = 'var(--mut)';
+  });
+  const activeBtn = document.getElementById('lang-' + l);
+  activeBtn.style.background = 'var(--acc2)'; activeBtn.style.color = '#fff';
+  renderParams();
+}
+
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.sb-item').forEach(p => p.classList.remove('on'));
+  document.getElementById('panel-' + id).classList.add('on');
+  document.getElementById('nav-' + id).classList.add('on');
+  if(id === 'preview' || id === 'tree') generateFiles();
+}
+
+function sync() {
+  state.name = document.getElementById('f-name').value;
+  state.title = document.getElementById('f-title').value;
+  state.vendor = document.getElementById('f-vendor').value;
+  state.version = document.getElementById('f-ver').value;
+  document.getElementById('bdg-name').textContent = `plg_${state.group}_${state.name}`;
+  document.getElementById('bdg-ver').textContent = `v${state.version}`;
+}
+
+function updateEvents() {
+  state.group = document.getElementById('f-group').value;
+  sync();
+  const list = document.getElementById('events-list');
+  list.innerHTML = '';
+  const evs = eventsByGroup[state.group] || [];
+  evs.forEach(ev => {
+    const isSelected = state.events.includes(ev);
+    const tr = document.createElement('div');
+    tr.className = 'tr';
+    tr.innerHTML = `<div><div class="tr-l">${ev}</div></div><div class="tog ${isSelected ? 'on' : ''}" id="ev-${ev}" onclick="toggleEvent('${ev}')"></div>`;
+    list.appendChild(tr);
+  });
+}
+
+function toggleEvent(ev) {
+  const el = document.getElementById('ev-' + ev);
+  el.classList.toggle('on');
+  if(el.classList.contains('on')) {
+    if(!state.events.includes(ev)) state.events.push(ev);
+  } else {
+    state.events = state.events.filter(e => e !== ev);
+  }
+}
+
+// ── PARAMETERS LOGIC ──
+function buildTypeSelect(){
+  const sel = document.getElementById('p-type'); sel.innerHTML = '';
+  typeGroups.forEach(grp=>{
+    const og = document.createElement('optgroup'); og.label = grp.label;
+    grp.keys.forEach(k=>{ const o = document.createElement('option'); o.value=k; o.textContent = FTYPES[k]?.label||k; og.appendChild(o); });
+    sel.appendChild(og);
+  });
+}
+function onTypeChange(){}
+function autoFillName(l){ if(!pNameEdited) document.getElementById('p-name').value = l.toLowerCase().replace(/[^a-z0-9]/g,'_'); }
+
+function renderParams(){
+  const tb = document.getElementById('ptbody'); tb.innerHTML='';
+  if(!state.params.length){
+    tb.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:18px;color:var(--mut)">Nenhum parâmetro cadastrado</td></tr>`;
+    return;
+  }
+  state.params.forEach((p,i)=>{
+    const td=FTYPES[p.type]||{};
+    tb.innerHTML+=`<tr>
+      <td><span class="tpill ${td.color||'tp-misc'}">${td.label||p.type}</span></td>
+      <td style="font-family:var(--mono)">${p.name}</td>
+      <td>${p.label}</td>
+      <td>${p.default||'—'}</td>
+      <td style="text-align:center">${p.required?'✅':'—'}</td>
+      <td>${p.desc||'—'}</td>
+      <td>${p.attrs?Object.keys(p.attrs).filter(k=>p.attrs[k]!=='').length:0} attrs</td>
+      <td style="text-align:right">
+        <button class="ibt ibt-up" onclick="moveParam(${i},-1)">↑</button>
+        <button class="ibt ibt-dn" onclick="moveParam(${i},1)">↓</button>
+        <button class="ibt ibt-edit" onclick="openModal(${i})">✎</button>
+        <button class="ibt ibt-del" onclick="delParam(${i})">✕</button>
+      </td>
+    </tr>`;
+  });
+}
+
+function moveParam(i,dir){
+  const j=i+dir; if(j<0||j>=state.params.length) return;
+  [state.params[i],state.params[j]]=[state.params[j],state.params[i]];
+  renderParams();
+}
+function delParam(i){ state.params.splice(i,1); renderParams(); status('Removido','a'); }
+
+function quickAdd(){
+  const l=document.getElementById('p-label').value.trim(), n=document.getElementById('p-name').value.trim();
+  const typ=document.getElementById('p-type').value, d=document.getElementById('p-def').value.trim(), req=document.getElementById('p-req').value==='true';
+  if(!n) return status('Informe o nome','a');
+  const td=FTYPES[typ]||{};
+  const attrs={}; if(td.attrs) Object.keys(td.attrs).forEach(k=>attrs[k]=td.attrs[k].d||'');
+  state.params.push({name:n,type:typ,label:l||n,default:d,required:req,attrs,options:[],children:[]});
+  document.getElementById('p-label').value=''; document.getElementById('p-name').value='';
+  pNameEdited=false; renderParams(); status('Adicionado');
+}
+
+function openModal(i){
+  editIdx=i; editTmp=JSON.parse(JSON.stringify(state.params[i]));
+  document.getElementById('m-title').textContent=`Editar: ${editTmp.name}`;
+  document.getElementById('modal').style.display='flex';
+  buildModalBody();
+}
+function closeModal(){ document.getElementById('modal').style.display='none'; }
+function closeModalOut(e){ if(e.target.id==='modal') closeModal(); }
+function saveModal(){ if(editIdx>=0) state.params[editIdx]=editTmp; closeModal(); renderParams(); status('Salvo'); }
+
+function buildModalBody(){
+  const p=editTmp, td=FTYPES[p.type]||{};
+  let h=`<div class="fg">
+    <div class="field"><label>Nome</label><input value="${p.name}" oninput="editTmp.name=this.value"></div>
+    <div class="field"><label>Label</label><input value="${p.label}" oninput="editTmp.label=this.value"></div>
+    <div class="field"><label>Default</label><input value="${p.default||''}" oninput="editTmp.default=this.value"></div>
+    <div class="field"><label>Description</label><input value="${p.desc||''}" oninput="editTmp.desc=this.value"></div>
+  </div>`;
+  if(td.attrs){
+    h+=`<div style="margin-top:15px;font-size:10px;font-weight:700;color:var(--acc2);margin-bottom:8px">ATRIBUTOS ESPECÍFICOS</div><div class="attr-grid">`;
+    Object.keys(td.attrs).forEach(ak=>{
+      const ad=td.attrs[ak]; const val=p.attrs[ak]!==undefined?p.attrs[ak]:ad.d;
+      h+=`<div class="attr-box"><div class="attr-name">${ak}</div>`;
+      if(ad.t==='bool'){
+        h+=`<select onchange="editTmp.attrs['${ak}']=this.value"><option value="" ${val===''?'selected':''}>—</option><option value="true" ${val==='true'?'selected':''}>true</option><option value="false" ${val==='false'?'selected':''}>false</option></select>`;
+      } else {
+        h+=`<input value="${val}" oninput="editTmp.attrs['${ak}']=this.value">`;
+      }
+      h+=`</div>`;
+    });
+    h+=`</div>`;
+  }
+  if(td.hasOpts){
+    h+=`<div class="opt-wrap"><div class="opt-header">Opções <button class="btn btn-pri btn-sm" onclick="addOption()">+</button></div>`;
+    (p.options||[]).forEach((o,oi)=>{
+      h+=`<div class="opt-row"><input placeholder="Value" value="${o.value}" oninput="editTmp.options[${oi}].value=this.value"><input placeholder="Text" value="${o.text}" oninput="editTmp.options[${oi}].text=this.value"><button class="ibt ibt-del" onclick="state.params[${editIdx}].options.splice(${oi},1);buildModalBody()">✕</button></div>`;
+    });
+    h+=`</div>`;
+  }
+  document.getElementById('m-body').innerHTML=h;
+}
+function addOption(){ if(!editTmp.options) editTmp.options=[]; editTmp.options.push({value:'',text:''}); buildModalBody(); }
+function clearParams(){ if(confirm('Limpar tudo?')){ state.params=[]; renderParams(); } }
+
+// ── GENERATION ──
+function xmlField(p, indent){
+  const td=FTYPES[p.type]||{};
+  let x=`${indent}<field name="${p.name}" type="${p.type}" label="${p.label.toUpperCase()}"`;
+  if(p.desc) x+=` description="${p.desc.toUpperCase()}"`;
+  if(p.default) x+=` default="${p.default}"`;
+  if(p.required) x+=` required="true"`;
+  if(p.attrs) Object.keys(p.attrs).forEach(ak=>{ if(p.attrs[ak]!=='') x+=` ${ak}="${p.attrs[ak]}"`; });
+  
+  if(td.hasOpts && p.options && p.options.length){
+    x+='>\n';
+    p.options.forEach(o=> x+=`${indent}  <option value="${o.value}">${o.text}</option>\n`);
+    x+=`${indent}</field>\n`;
+  } else if(td.isSubform && p.children && p.children.length){
+    x+='>\n'+indent+'  <form>\n';
+    p.children.forEach(c=> x+=xmlField(c, indent+'    '));
+    x+=indent+'  </form>\n'+indent+'</field>\n';
+  } else {
+    x+=' />\n';
+  }
+  return x;
+}
+
+function generateFiles() {
+  const groupSlug = state.group.charAt(0).toUpperCase() + state.group.slice(1);
+  const nameSlug = state.name.charAt(0).toUpperCase() + state.name.slice(1);
+  const ns = `${state.vendor}\\Plugin\\${groupSlug}\\${nameSlug}`;
+  const className = nameSlug;
+  const fileName = `plg_${state.group}_${state.name}`;
+
+  let paramXml = '';
+  state.params.forEach(p=> paramXml += xmlField(p, '				'));
+
+  let xml = `<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="${state.group}" method="upgrade">
+	<name>${fileName}</name>
+	<author>${state.vendor}</author>
+	<creationDate>${new Date().toLocaleDateString()}</creationDate>
+	<copyright>(C) ${new Date().getFullYear()} ${state.vendor}</copyright>
+	<license>GNU GPL v2</license>
+	<version>${state.version}</version>
+	<description>${document.getElementById('f-desc').value}</description>
+	<namespace path="src">${ns}</namespace>
+	<files>
+		<folder>services</folder>
+		<folder>src</folder>
+		<folder>language</folder>
+	</files>
+	<config>
+		<fields name="params">
+			<fieldset name="basic">
+${paramXml||'				<field name="sample" type="text" label="PLG_SAMPLE" />'}
+			</fieldset>
+		</fields>
+	</config>
+</extension>`;
+
+  let provider = `<?php
+defined('_JEXEC') or die;
+use Joomla\\CMS\\Extension\\PluginInterface;
+use Joomla\\CMS\\Plugin\\PluginHelper;
+use Joomla\\DI\\Container;
+use Joomla\\DI\\ServiceProviderInterface;
+use Joomla\\Event\\DispatcherInterface;
+use ${ns}\\Extension\\${className};
+
+return new class () implements ServiceProviderInterface {
+	public function register(Container $container) {
+		$container->set(PluginInterface::class, function (Container $container) {
+			$dispatcher = $container->get(DispatcherInterface::class);
+			$plugin = PluginHelper::getPlugin('${state.group}', '${state.name}');
+			return new ${className}($dispatcher, (array) $plugin->params);
+		});
+	}
+};`;
+
+  let eventMethods = state.events.map(ev => `	public function ${ev}()\n	{\n		// Logic for ${ev}\n	}`).join('\n\n');
+  let code = `<?php\nnamespace ${ns}\\Extension;\ndefined('_JEXEC') or die;\nuse Joomla\\CMS\\Plugin\\CMSPlugin;\n\nclass ${className} extends CMSPlugin\n{\n	protected $autoloadLanguage = true;\n\n${eventMethods}\n}`;
+
+  state.files = {
+    [`${state.name}.xml`]: xml,
+    [`services/provider.php`]: provider,
+    [`src/Extension/${className}.php`]: code,
+    [`language/en-GB/plg_${state.group}_${state.name}.ini`]: ``,
+    [`language/en-GB/plg_${state.group}_${state.name}.sys.ini`]: `${fileName}="${state.title}"`
+  };
+
+  renderPreview(); renderTree();
+}
+
+function renderPreview() {
+  const tabs = document.getElementById('prev-tabs'), cont = document.getElementById('prev-content');
+  tabs.innerHTML = ''; cont.innerHTML = '';
+  Object.keys(state.files).forEach((f, i) => {
+    const btn = document.createElement('button'); btn.className = 'tab-btn' + (i === 0 ? ' on' : '');
+    btn.textContent = f; btn.onclick = () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on'); document.querySelectorAll('.code-block').forEach(c => c.style.display = 'none');
+      document.getElementById('code-' + i).style.display = 'block';
+    };
+    tabs.appendChild(btn);
+    const block = document.createElement('div'); block.className = 'code-block'; block.id = 'code-' + i;
+    block.style.display = i === 0 ? 'block' : 'none';
+    block.innerHTML = `<div class="code-hdr"><span class="code-fn">${f}</span></div><div class="code-body"><pre><code>${escapeHtml(state.files[f])}</code></pre></div>`;
+    cont.appendChild(block);
+  });
+}
+
+function renderTree() {
+  const wrap = document.getElementById('ftree-wrap'); wrap.innerHTML = '<ul class="ftree"></ul>';
+  const ul = wrap.querySelector('ul');
+  Object.keys(state.files).sort().forEach(f => {
+    const li = document.createElement('li'); li.innerHTML = `<span>📄</span> ${f}`; ul.appendChild(li);
+  });
+}
+
+function escapeHtml(t) { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+
+async function generateZip() {
+  const btn=document.getElementById('dl-btn'); btn.disabled=true; btn.textContent='⏳ ...';
+  const zip = new JSZip(); Object.keys(state.files).forEach(f => zip.file(f, state.files[f]));
+  const content = await zip.generateAsync({type:"blob"});
+  const link = document.createElement('a'); link.href = URL.createObjectURL(content);
+  link.download = `plg_${state.group}_${state.name}.zip`; link.click();
+  btn.disabled=false; btn.textContent=t('btn-download');
+}
+
+buildTypeSelect(); setLang('pt'); updateEvents();
+</script>
+</body>
+</html>
