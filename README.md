@@ -1,29 +1,36 @@
-# Joomla Plugin Generator Pro
+# Joomla Extension Generator Professional
 
-A modern, browser-based scaffolding tool for Joomla 5 and 6 plugins.
+A powerful browser-based generator for Joomla 5/6 Plugins and Modules. Create standardized, MVC-compliant extensions with professional architecture.
 
-## Features
+## 🚀 Live Demo
+[Access the Generator](https://uzielweb.github.io/joomla-plugin-generator-pro/)
 
-- **Premium UI**: Dark-mode, high-fidelity interface inspired by professional developer tools.
-- **Modern Joomla Architecture**: Generates code 100% compliant with Joomla 5/6 standards (PSR-4, Dependency Injection, Services).
-- **Group-specific Events**: Automatically provides common events based on the selected plugin group (System, Content, User, Finder, etc.).
-- **Multilingual UI**: Support for Portuguese (BR), English (GB), and Spanish (ES).
-- **Standalone**: Works entirely in the browser using JSZip for package generation.
+## ✨ Key Features
+- **Modern Joomla 5/6 Architecture**: Uses the Service/Provider pattern and native Joomla namespaces.
+- **Modular Templates**: Quick starts for Content, System, User, and Custom plugins.
+- **Multilingual Support (i18n)**: Automatically generates `.ini` language files for PT, EN, and ES.
+- **Field Generator**: Visual creator for XML Form Fields (text, select, color, media, etc.).
+- **Advanced Logic**:
+    - **MVC/Service Pattern**: Proper separation of concerns.
+    - **AJAX Support**: Native Joomla AJAX interface integration.
+    - **Database (JDatabaseQuery)**: Secure database interaction boilerplate.
+- **Developer UI**: Dark-mode interface with real-time code preview and file tree.
 
-## How to Use
+## 📁 Generated Structure
+```text
+plg_type_name/
+├── services/           # Provider.php (Joomla 5+ standard)
+├── src/                # Extension Namespace
+├── tmpl/               # Frontend layouts
+├── language/           # Multilingual .ini files
+└── name.xml           # Manifest file
+```
 
-1. Fill in the plugin information (Name, Vendor, Version).
-2. Select the plugin group and the events you want to implement.
-3. (Optional) Configure parameters.
-4. Preview the generated code.
-5. Click **Download ZIP** to get your ready-to-install Joomla plugin.
+## 🛠 How to Use
+1. Set the extension type (Module or Plugin).
+2. Define namespaces and metadata.
+3. Configure parameters and form fields.
+4. Preview and download the installable `.zip` package.
 
-## Technical Details
-
-- **Namespaces**: Uses PSR-4 namespaces (`Vendor\Plugin\Group\Name`).
-- **Entry Point**: Implements the modern `services/provider.php` pattern.
-- **Class Structure**: Extends `CMSPlugin` and uses the modern Event Dispatcher.
-
-## License
-
-MIT License.
+---
+Developed by [Antigravity AI](https://github.com/uzielweb)
