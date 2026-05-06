@@ -2,8 +2,8 @@
 
 A powerful browser-based generator for Joomla 5/6 Plugins and Modules. Create standardized, MVC-compliant extensions with professional architecture.
 
-## 🚀 Live Demo
-[Access the Generator](https://uzielweb.github.io/joomla-plugin-generator-pro/)
+## 🚀 Launch Generator
+[Open Generator Tool](https://uzielweb.github.io/joomla-plugin-generator-pro/)
 
 ## ✨ Key Features
 - **Modern Joomla 5/6 Architecture**: Uses the Service/Provider pattern and native Joomla namespaces.
